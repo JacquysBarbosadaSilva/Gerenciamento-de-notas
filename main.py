@@ -5,7 +5,6 @@ import pandas as pd
 
 print(sys.executable)
 
-# --- Configuração do Tkinter ---
 janela = tk.Tk()
 janela.title("Gerenciamento de notas")
 
@@ -18,19 +17,19 @@ for campo in campos:
     entry.pack(anchor='w', padx=10, pady=5)
     entries.append(entry)
 
-todos_dados = []  # Lista para armazenar todos os dados
+todos_dados = [] 
 
 def salvar_dados():
-    valores = [entry.get() for entry in entries]   # Pega valores dos Entry
-    tabela.insert("", tk.END, values=valores)      # Insere na tabela
-    todos_dados.append(valores)                    # Guarda na lista todos_dados para filtrar
+    valores = [entry.get() for entry in entries]   
+    tabela.insert("", tk.END, values=valores)   
+    todos_dados.append(valores)                   
     for entry in entries:
-        entry.delete(0, tk.END)                    # Limpa os campos
+        entry.delete(0, tk.END) 
 
-# --- Função para filtrar ---
+
 def aplicar_filtro(event=None):
-    tipo = filtro_var.get()  # pega a opção selecionada no combobox
-    tabela.delete(*tabela.get_children())  # limpa a tabela
+    tipo = filtro_var.get() 
+    tabela.delete(*tabela.get_children())  
     for item in todos_dados:
         try:
             nota = float(item[3])
@@ -46,7 +45,7 @@ def aplicar_filtro(event=None):
             tabela.insert("", tk.END, values=item)
 
 def exportar_csv_filtrado():
-    # Pega apenas os itens atualmente exibidos na tabela
+
     linhas = []
     for row_id in tabela.get_children():
         linhas.append(tabela.item(row_id)['values'])
@@ -61,24 +60,23 @@ def exportar_csv_filtrado():
         title="Salvar tabela filtrada como CSV"
     )
     if arquivo:
-        # Cria DataFrame apenas com os dados filtrados
+
         df = pd.DataFrame(linhas, columns=["Nome", "Idade", "Curso", "Nota Final"])
         df.to_csv(arquivo, index=False, encoding='utf-8')
         tk.messagebox.showinfo("Exportar CSV", f"Tabela filtrada exportada com sucesso para:\n{arquivo}")
 
 def importar_tabela():
     arquivo = filedialog.askopenfilename(
-        # Mantenha a filtragem de tipos de arquivo na caixa de diálogo
+
         filetypes=[("Arquivos CSV", "*.csv"), ("Arquivos Excel", "*.xlsx *.xls")],
         title="Abrir tabela"
     )
     if not arquivo:
-        return # usuário cancelou
+        return
 
     try:
         caminho_baixo = arquivo.lower()
         
-        # 1. Tenta ler CSV
         if caminho_baixo.endswith(".csv"):
             df = pd.read_csv(arquivo) 
 
@@ -86,13 +84,11 @@ def importar_tabela():
             tk.messagebox.showwarning("Aviso", "Formato de arquivo não suportado.")
             return
 
-        # Limpa e popula a tabela
         tabela.delete(*tabela.get_children())
         todos_dados.clear()
 
-        # Insere os dados na tabela e na lista todos_dados
         for _, row in df.iterrows():
-            # Certifique-se que os nomes das colunas (keys) estão corretos
+
             valores = [row["Nome"], row["Idade"], row["Curso"], row["Nota Final"]]
             tabela.insert("", tk.END, values=valores)
             todos_dados.append(valores)
@@ -100,28 +96,25 @@ def importar_tabela():
         tk.messagebox.showinfo("Importar Tabela", f"Tabela importada com sucesso de:\n{arquivo}")
 
     except KeyError:
-        # Se o arquivo não tiver as colunas esperadas
+
         tk.messagebox.showerror("Erro", "O arquivo importado não possui as colunas necessárias (Nome, Idade, Curso, Nota Final).")
     except Exception as e:
         tk.messagebox.showerror("Erro", f"Não foi possível importar o arquivo:\n{e}")
 
-# --- Botões ---
-# Cria um frame para alinhar horizontalmente
 frame_botoes = tk.Frame(janela)
-frame_botoes.pack(pady=10)  # coloca o frame na janela principal
+frame_botoes.pack(pady=10)
 
-# Botão salvar
 btn_salvar = tk.Button(frame_botoes, text="Salvar", command=salvar_dados, 
                     bg="#4CAF50", 
                     fg="white", 
                     activebackground="#45a049", 
                     activeforeground="white",
                     font=("Arial", 10, "bold"),
-                    padx=8, pady=3,               # padding interno
-                    bd=0,                            # remove borda padrão
-                    relief="flat")                   # estilo da borda
+                    padx=8, pady=3,              
+                    bd=0,                            
+                    relief="flat")                   
 
-btn_salvar.pack(side="left", padx=5)  # lado esquerdo do frame, com espaçamento
+btn_salvar.pack(side="left", padx=5)  
 
 
 btn_exportar = tk.Button(frame_botoes, text="Exportar CSV", command=exportar_csv_filtrado,
@@ -130,8 +123,8 @@ btn_exportar = tk.Button(frame_botoes, text="Exportar CSV", command=exportar_csv
                     activebackground="#7B53AF", 
                     activeforeground="white",
                     font=("Arial", 10, "bold"),
-                    padx=8, pady=3,               # padding interno
-                    bd=0,                            # remove borda padrão
+                    padx=8, pady=3,               
+                    bd=0,                           
                     relief="flat")
 btn_exportar.pack(side="left", padx=5)
 
@@ -141,8 +134,8 @@ btn_importar = tk.Button(frame_botoes, text="Importar Tabela", command=importar_
                     activebackground="#5C75C9", 
                     activeforeground="white",
                     font=("Arial", 10, "bold"),
-                    padx=8, pady=3,               # padding interno
-                    bd=0,                            # remove borda padrão
+                    padx=8, pady=3,              
+                    bd=0,                          
                     relief="flat")
 btn_importar.pack(side="left", padx=5)
 
@@ -152,10 +145,8 @@ filtro_combobox = ttk.Combobox(frame_botoes, textvariable=filtro_var, state="rea
 filtro_combobox['values'] = ["Todas", "Notas Baixas", "Notas Regulares", "Notas Boas"]
 filtro_combobox.current(0)
 filtro_combobox.bind("<<ComboboxSelected>>", aplicar_filtro)
-filtro_combobox.pack(side="left", padx=5)  # lado esquerdo do frame, com espaçamento
+filtro_combobox.pack(side="left", padx=5) 
 
-
-# --- Tabela ---
 colunas = ("nome", "idade", "curso", "nota")
 tabela = ttk.Treeview(janela, columns=colunas, show="headings")
 
@@ -165,18 +156,14 @@ tabela.heading("idade", text="Idade")
 tabela.heading("curso", text="Curso")
 tabela.heading("nota", text="Nota Final")
 
-# Largura das colunas
 tabela.column("nome", width=150)
 tabela.column("idade", width=80, anchor='center')
 tabela.column("curso", width=150, anchor='center')
 tabela.column("nota", width=100, anchor='center')
 
-# Scroll
 scrollbar = ttk.Scrollbar(janela, orient="vertical", command=tabela.yview)
 tabela.configure(yscroll=scrollbar.set)
 scrollbar.pack(side="right", fill="y")
 tabela.pack(padx=10, pady=10)
-
-
 
 janela.mainloop()
