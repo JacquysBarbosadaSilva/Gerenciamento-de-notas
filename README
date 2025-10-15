@@ -1,0 +1,12 @@
+O projeto requer que voê possua a versão do python 3.0.0 ou superior.
+
+Para o sistema funcionar, é necessária a instalação de algumas bibliotecas:
+
+tkinter -> ja vem instalada junto com o python;
+pandas -> pip install pandas
+
+Já possui uma tabela para testes, mas você pode criar a sua própria tabela .csv, desde que siga o modelo:
+  
+  Nome, Idade, Curso, Nota Final
+
+Observações: o programa só funciona com arquivos .csv
