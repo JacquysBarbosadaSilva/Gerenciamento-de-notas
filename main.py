@@ -20,16 +20,15 @@ for campo in campos:
 todos_dados = [] 
 
 def salvar_dados():
-    valores = [entry.get() for entry in entries]   
-    tabela.insert("", tk.END, values=valores)   
-    todos_dados.append(valores)                   
+    valores = [entry.get() for entry in entries]
+    tabela.insert("", tk.END, values=valores)
+    todos_dados.append(valores)
     for entry in entries:
-        entry.delete(0, tk.END) 
-
+        entry.delete(0, tk.END)
 
 def aplicar_filtro(event=None):
-    tipo = filtro_var.get() 
-    tabela.delete(*tabela.get_children())  
+    tipo = filtro_var.get()
+    tabela.delete(*tabela.get_children())
     for item in todos_dados:
         try:
             nota = float(item[3])
@@ -44,6 +43,7 @@ def aplicar_filtro(event=None):
         elif tipo == "Todas":
             tabela.insert("", tk.END, values=item)
 
+# ======== EXPORTAR CSV ========
 def exportar_csv_filtrado():
     linhas = []
     for row_id in tabela.get_children():
@@ -58,11 +58,13 @@ def exportar_csv_filtrado():
         filetypes=[("Arquivos CSV", "*.csv")],
         title="Salvar tabela filtrada como CSV"
     )
+
     if arquivo:
         df = pd.DataFrame(linhas, columns=["Nome", "Idade", "Curso", "Nota Final"])
         df.to_csv(arquivo, index=False, encoding='utf-8')
-        tk.messagebox.showinfo("Exportar CSV", f"Tabela filtrada exportada com sucesso para:\n{arquivo}")
+        tk.messagebox.showinfo("Exportar CSV", f"Tabela exportada com sucesso para:\n{arquivo}")
 
+# ======== EXPORTAR XLSX ========
 def exportar_xlsx_filtrado():
     linhas = []
     for row_id in tabela.get_children():
@@ -86,25 +88,32 @@ def exportar_xlsx_filtrado():
         except Exception as e:
             tk.messagebox.showerror("Erro", f"Falha ao exportar para XLSX:\n{e}")
 
-
+# ======== IMPORTAR CSV/XLSX ========
 def importar_tabela():
     arquivo = filedialog.askopenfilename(
-        filetypes=[("Arquivos CSV", "*.csv"), ("Arquivos Excel", "*.xlsx *.xls")],
+        filetypes=[
+            ("Arquivos CSV", "*.csv"),
+            ("Arquivos Excel", "*.xlsx *.xls")
+        ],
         title="Abrir tabela"
     )
+
     if not arquivo:
         return
 
     try:
         caminho_baixo = arquivo.lower()
+
+        # Detecta o tipo de arquivo automaticamente
         if caminho_baixo.endswith(".csv"):
             df = pd.read_csv(arquivo)
         elif caminho_baixo.endswith((".xlsx", ".xls")):
-            df = pd.read_excel(arquivo)
+            df = pd.read_excel(arquivo, engine='openpyxl')
         else:
             tk.messagebox.showwarning("Aviso", "Formato de arquivo não suportado.")
             return
 
+        # Limpa a tabela atual e recarrega os dados
         tabela.delete(*tabela.get_children())
         todos_dados.clear()
 
@@ -116,44 +125,48 @@ def importar_tabela():
         tk.messagebox.showinfo("Importar Tabela", f"Tabela importada com sucesso de:\n{arquivo}")
 
     except KeyError:
-        tk.messagebox.showerror("Erro", "O arquivo importado não possui as colunas necessárias (Nome, Idade, Curso, Nota Final).")
+        tk.messagebox.showerror("Erro", "O arquivo não possui as colunas necessárias (Nome, Idade, Curso, Nota Final).")
     except Exception as e:
-        tk.messagebox.showerror("Erro", f"Não foi possível importar o arquivo:\n{e}")
+        tk.messagebox.showerror("Erro", f"Erro ao importar arquivo:\n{e}")
+
+# ======== INTERFACE ========
 
 frame_botoes = tk.Frame(janela)
 frame_botoes.pack(pady=10)
 
-btn_salvar = tk.Button(frame_botoes, text="Salvar", command=salvar_dados, 
-                    bg="#4CAF50", fg="white", activebackground="#45a049", 
+btn_salvar = tk.Button(frame_botoes, text="Salvar", command=salvar_dados,
+                    bg="#4CAF50", fg="white", activebackground="#45a049",
                     activeforeground="white", font=("Arial", 10, "bold"),
                     padx=8, pady=3, bd=0, relief="flat")
-btn_salvar.pack(side="left", padx=5)  
+btn_salvar.pack(side="left", padx=5)
 
 btn_exportar_csv = tk.Button(frame_botoes, text="Exportar CSV", command=exportar_csv_filtrado,
-                    bg="#652EAD", fg="white", activebackground="#7B53AF", 
+                    bg="#652EAD", fg="white", activebackground="#7B53AF",
                     activeforeground="white", font=("Arial", 10, "bold"),
                     padx=8, pady=3, bd=0, relief="flat")
 btn_exportar_csv.pack(side="left", padx=5)
 
 btn_exportar_xlsx = tk.Button(frame_botoes, text="Exportar XLSX", command=exportar_xlsx_filtrado,
-                    bg="#009688", fg="white", activebackground="#26a69a", 
+                    bg="#009688", fg="white", activebackground="#26a69a",
                     activeforeground="white", font=("Arial", 10, "bold"),
                     padx=8, pady=3, bd=0, relief="flat")
 btn_exportar_xlsx.pack(side="left", padx=5)
 
 btn_importar = tk.Button(frame_botoes, text="Importar Tabela", command=importar_tabela,
-                    bg="#284DC9", fg="white", activebackground="#5C75C9", 
+                    bg="#284DC9", fg="white", activebackground="#5C75C9",
                     activeforeground="white", font=("Arial", 10, "bold"),
                     padx=8, pady=3, bd=0, relief="flat")
 btn_importar.pack(side="left", padx=5)
 
+# Combobox de filtro
 filtro_var = tk.StringVar()
 filtro_combobox = ttk.Combobox(frame_botoes, textvariable=filtro_var, state="readonly")
 filtro_combobox['values'] = ["Todas", "Notas Baixas", "Notas Regulares", "Notas Boas"]
 filtro_combobox.current(0)
 filtro_combobox.bind("<<ComboboxSelected>>", aplicar_filtro)
-filtro_combobox.pack(side="left", padx=5) 
+filtro_combobox.pack(side="left", padx=5)
 
+# Tabela
 colunas = ("nome", "idade", "curso", "nota")
 tabela = ttk.Treeview(janela, columns=colunas, show="headings")
 
